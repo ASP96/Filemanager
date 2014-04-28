@@ -6,6 +6,7 @@
         "defaultViewMode": "grid",
         "autoload": true,
         "showFullPath": false,
+        "showTitleAttr": false,
         "browseOnly": false,
         "showConfirmation": true,
         "showThumbs": true,
@@ -19,10 +20,11 @@
         "fileRoot": false,
         "relPath": false,
         "logger": false,
-        "capabilities": ["select", "download", "rename", "move", "delete"],
+        "capabilities": ["select", "download", "rename", "move", "delete", "replace"],
         "plugins": []
     },
     "security": {
+        "allowChangeExtensions": false,
         "uploadPolicy": "DISALLOW_ALL",
         "uploadRestrictions": [
             "jpg",
@@ -42,6 +44,7 @@
             "xlsx",
             "ppt",
             "pptx",
+            "csv",
             "ogv",
             "mp4",
             "webm",
@@ -58,15 +61,16 @@
     },
     "exclude": {
         "unallowed_files": [
-            ".htaccess"
+            ".htaccess",
+            "web.config"
         ],
         "unallowed_dirs": [
             "_thumbs",
             ".CDN_ACCESS_LOGS",
             "cloudservers"
         ],
-        "unallowed_files_REGEXP": "/^\\./uis",
-        "unallowed_dirs_REGEXP": "/^\\./uis"
+        "unallowed_files_REGEXP": "/^\\.",
+        "unallowed_dirs_REGEXP": "/^\\."
     },
     "images": {
         "imagesExt": [
@@ -99,6 +103,17 @@
             "ogg",
             "mp3",
             "wav"
+        ]
+    },
+    "edit": {
+        "enabled": true,
+        "lineNumbers": true,
+        "lineWrapping": true,
+        "codeHighlight": false,
+        "theme": "elegant",
+        "editExt": [
+            "txt",
+            "csv"
         ]
     },
     "extras": {

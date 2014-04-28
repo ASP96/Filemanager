@@ -55,6 +55,8 @@ CKEDITOR.replace('instancename', {
 });
 ```
 
+If you want to use the **modal dialog mode** (instead of pop-up), please refer to [the dedicated wiki page](https://github.com/simogeo/Filemanager/wiki/How-to-open-the-Filemanager-from-CKEditor-in-a-modal-window-%3F).
+
 **(4c)** If you are integrating the FileManager with TinyMCE (>= 3.0), you should:
 
 Create a Javascript callback function that will open the FileManager index.html base page (see URL below for examples)
@@ -62,6 +64,12 @@ Add a line like: "file_browser_callback : 'name_of_callback_function'" in the ti
 See http://www.tinymce.com/wiki.php/TinyMCE3x:How-to_implement_a_custom_file_browser for more details.
 
 See also the dedicated wiki page, with TinyMCE 4 sample : https://github.com/simogeo/Filemanager/wiki/How-to-use-the-Filemanager-with-tinyMCE--3-or-4-%3F
+
+
+**(5)** Last but not least, **worry about security**!
+
+For **PHP connector** : copy/paste the `/connectors/php/default.config.php` to `/connectors/php/user.config.php` to define your own authentication function.
+To do so, you will find an example on the [dedicated wiki page](https://github.com/simogeo/Filemanager/wiki/Security-concern).
 
 **jQuery dependency and compatibility**
 
@@ -73,7 +81,8 @@ You'll have to use the [jQuery.migrate() plugin](https://github.com/jquery/jquer
 Set-up & security
 -----------------
 
-**Important** : please refer to the [dedicated wiki page](https://github.com/simogeo/Filemanager/wiki/Security-concern).
+**Important** : The Filemanager is designed to work without any special configuration but **using it without any configuration is VERY unsafe**.
+Please set-up your own **authentication function**, based on [default file](https://github.com/simogeo/Filemanager/blob/master/connectors/php/default.config.php) and refering to the [dedicated wiki page](https://github.com/simogeo/Filemanager/wiki/Security-concern).
 
 
 API
@@ -116,7 +125,7 @@ Your script should include support for the following methods/functions. GET requ
 
 getinfo
 -------
-The getinfo method returns information about a single file. Requests with mode "getinfo" will include an additional parameter, "path", indicating which file to inspect. A boolean parameter "getsize" indicates whether the dimensions of the file (if an image) should be returned. 
+The `getinfo` method returns information about a single file. Requests with mode "getinfo" will include an additional parameter, "path", indicating which file to inspect. A boolean parameter "getsize" indicates whether the dimensions of the file (if an image) should be returned. 
 
 Example Request:
 
@@ -172,7 +181,7 @@ The keys are as follows:
 
 getfolder
 ---------
-The getfolder method returns an array of file and folder objects representing the contents of the given directory (indicated by a "path" parameter). It should call the getinfo method to retrieve the properties of each file. A boolean parameter "getsizes" indicates whether image dimensions should be returned for each item. Folders should always be returned before files.
+The `getfolder` method returns an array of file and folder objects representing the contents of the given directory (indicated by a "path" parameter). It should call the getinfo method to retrieve the properties of each file. A boolean parameter "getsizes" indicates whether image dimensions should be returned for each item. Folders should always be returned before files.
 Optionally a "type" parameter can be specified to restrict returned files (depending on the connector). If a "type" parameter is given for the main index.html URL, the same parameter value is reused and passed to getfolder. This can be used for example to only show image files in a file system tree.
 
 Example Request:
@@ -237,7 +246,7 @@ Each key in the array is the path to an individual item, and the value is the fi
 
 rename
 ------
-The rename method renames the item at the path given in the "old" parameter with the name given in the "new" parameter and returns an object indicating the results of that action.
+The `rename` method renames the item at the path given in the "old" parameter with the name given in the "new" parameter and returns an object indicating the results of that action.
 
 Example Request:
 
@@ -256,7 +265,7 @@ Example Response:
 
 move
 ------
-The move method move "old" file or directory to specified "new" directory. It is possible to specify absolute path from fileRoot dir or relative path from "old" item. "root" value is mandatory to secure that relative paths don't get above fileRoot.
+The `move` method move "old" file or directory to specified "new" directory. It is possible to specify absolute path from fileRoot dir or relative path from "old" item. "root" value is mandatory to secure that relative paths don't get above fileRoot.
 
 Example Request: Move file
 	
@@ -293,7 +302,7 @@ Example Response:
 
 delete
 ------
-The delete method deletes the item at the given path.
+The `delete` method deletes the item at the given path.
 
 Example Request:
 
@@ -310,7 +319,7 @@ Example Response:
 
 add
 ---
-The add method adds the uploaded file to the specified path. Unlike the other methods, this method must return its JSON response wrapped in an HTML <textarea>, so the MIME type of the response is text/html instead of text/plain. The upload form in the File Manager passes the current path as a POST param along with the uploaded file. The response includes the path as well as the name used to store the file. The uploaded file's name should be safe to use as a path component in a URL, so URL-encoded at a minimum.
+The `add` method adds the uploaded file to the specified path. Unlike the other methods, this method must return its JSON response wrapped in an HTML <textarea>, so the MIME type of the response is text/html instead of text/plain. The upload form in the File Manager passes the current path as a POST param along with the uploaded file. The response includes the path as well as the name used to store the file. The uploaded file's name should be safe to use as a path component in a URL, so URL-encoded at a minimum.
 
 Example Response:
 
@@ -321,10 +330,60 @@ Example Response:
         "Code": 0
     }
 
+replace
+---
+The `replace` method allow the user to replace a specific file whatever the new filename - at least, the new file should have the same extension the original has. The old file is automatically overwritten. Unlike the other methods, this method must return its JSON response wrapped in an HTML <textarea>, so the MIME type of the response is text/html instead of text/plain. The *dynamic* upload form in the File Manager passes the current file path as a POST param along with the uploaded file. The response includes the path as well as the name used to store the file.
+
+Example Response:
+
+    {
+        "Path": "/UserFiles/Image/",
+        "Name": "new_logo.png",
+        "Error": "No error",
+        "Code": 0
+    }
+
+editfile
+--------
+The `editfile` method returns the content of a given file (passed as parameter). It gives the user the ability to edit a file online (extensions are specified in configuration file). Handled as GET request.
+
+Example request:
+
+	[path to connector]?mode=editfile&path=/UserFiles/MyFolder/myfile.txt
+	
+Example Response:
+
+    {
+        "Error": "No error",
+        "Code": 0,
+        "Path": "/UserFiles/MyFolder/myfile.txt",
+        "Content": "Content":"Lorem ipsum dolor sit amet, consectetur adipiscing elit.\r\n\Phasellus eu erat lorem.\r\n\r\n\Bye!"
+    }
+
+savefile
+--------
+The `save` method will overwrite the content of the current file. The edit form in the File Manager passes the mode (as `savefile`), path of the current file and the content as POST parameters.
+	
+Example Response:
+
+    {
+        "Error": "No error",
+        "Code": 0,
+        "Path": "/UserFiles/MyFolder/myfile.txt"
+    }
+
+preview
+--------
+The `preview` method serves the requested image for displaying. The image path is passed through the `path` parameter. If `thumbnail=true` parameter is passed, the method will return an image thumbnail. An extra parameter such as UNIX time can be added to the URL to prevent cache issue.
+
+Example Request:
+
+	[path to connector]?mode=preview&path=/UserFiles/new%20logo.png&thumbnail=true
+
 
 addfolder
 ---------
-The addfolder method creates a new directory on the server within the given path.
+The `addfolder` method creates a new directory on the server within the given path.
 
 Example Request:
 
@@ -342,7 +401,7 @@ Example Response:
 
 download
 --------
-The download method serves the requested file to the user. We currently use a MIME type of "application/x-download" to force the file to be downloaded rather than displayed in a browser. In the future we may make exceptions for specific file types that often have in-browser viewers such as PDF's and various movie formats (Flash, Quicktime, etc.).
+The `download` method serves the requested file to the user. We currently use a MIME type of "application/x-download" to force the file to be downloaded rather than displayed in a browser. In the future we may make exceptions for specific file types that often have in-browser viewers such as PDF's and various movie formats (Flash, Quicktime, etc.).
 
 Example Request:
 
@@ -361,5 +420,4 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/simogeo/filemanager/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
  
